@@ -1,17 +1,18 @@
 package ui;
 
 import java.util.Scanner;
-import model.Card;
+import model.Controller;
 
 /**
- * Executable class represents the user interface and main controller of the PokeCollector application.
+ * Executable class represents the user interface and main controller of the
+ * PokeCollector application.
  * Manages the main menu and functionalities.
  */
 public class Executable {
 
     // Attributes
     private static Scanner reader;
-    private static Card myCard;
+    private static Controller control;
 
     /**
      * Main entry point of the PokeCollector application.
@@ -21,6 +22,8 @@ public class Executable {
      */
     public static void main(String[] args) {
         reader = new Scanner(System.in);
+        control = new Controller();
+
         showMenu();
 
     }
@@ -113,9 +116,13 @@ public class Executable {
         System.out.println("Digite el precio");
         double price = reader.nextDouble();
 
-        myCard = new Card(name, type, rarity, expansion, id, price);
+        boolean result = control.registerCard(name, type, rarity, expansion, id, price);
 
-        System.out.println("Carta registrada exitosamente!");
+        if (result) {
+            System.out.println("Carta registrada exitosamente!");
+        }else{
+            System.out.println("Error al registrar carta, el Pokedex esta lleno");
+        }
 
     }
 
@@ -124,6 +131,24 @@ public class Executable {
      * Prints all card details to the console.
      */
     public static void showCardInfo() {
+
+        String query = control.getPokedexInformation();
+
+        if(query.equals("")){
+            System.out.println("No hay cartas registradas en el sistema");
+        }else{
+            System.out.println("Cartas registradas: \n");
+            System.out.println(query);
+
+            System.out.println("Digite el consecutivo de la carta a consultar");
+            int index = reader.nextInt();
+
+
+
+
+        }
+
+
 
         System.out.println("La informacion de la carta es: \n" + myCard.toString());
 
