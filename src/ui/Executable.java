@@ -4,43 +4,56 @@ import java.util.Scanner;
 import model.Controller;
 
 /**
- * Executable class represents the user interface and main controller of the
- * PokeCollector application.
- * Manages the main menu and functionalities.
+ * Description: Executable class represents the user interface and main
+ * controller of the
+ * PokeCollector application. Manages the main menu and functionalities.
  */
 public class Executable {
 
     // Attributes
-    private static Scanner reader;
-    private static Controller control;
+    private Scanner reader;
+    private Controller control;
 
     /**
-     * Main entry point of the PokeCollector application.
-     * Initializes the Scanner and starts the main menu.
-     *
+     * Description: Main entry point of the PokeCollector application.
+     * Initializes the Executable instance and displays the main menu.
+     * 
      * @param args Command-line arguments
      */
     public static void main(String[] args) {
-        reader = new Scanner(System.in);
-        control = new Controller();
-
-        showMenu();
-
+        Executable exe = new Executable();
+        exe.showMenu();
     }
 
     /**
-     * Displays the main menu and handles user option selection.
-     * Allows users to access system functionalities or exit.
+     * Description: Initializes a new Executable instance with a Scanner for user
+     * input
+     * and a Controller for managing card operations.
+     * Postcondition: reader and control attributes are initialized
      */
-    public static void showMenu() {
+    public Executable() {
+        reader = new Scanner(System.in);
+        control = new Controller();
+    }
+
+    /**
+     * Description: Displays the main menu and handles user option selection.
+     * Allows users to access system functionalities or exit.
+     * Precondition: reader Scanner must be initialized.
+     */
+    public void showMenu() {
+
+        System.out.print("\033[H\033[2J");
 
         int option = 0;
 
         do {
             System.out.println("Bienvenido a PokeCollector!!!");
-            System.out.println("MENU DE OPCIONES");
-            System.out.println("1. Registrar informacion de una carta");
+            System.out.println("\nMENU DE OPCIONES");
+            System.out.println("\n1. Registrar una carta");
             System.out.println("2. Mostrar informacion de una carta");
+            System.out.println("3. Modificar informacion de una carta");
+            System.out.println("4. Borrar una carta");
             System.out.println("0. Salir del sistema");
             option = reader.nextInt();
 
@@ -51,6 +64,13 @@ public class Executable {
 
                 case 2:
                     showCardInfo();
+                    break;
+
+                case 3:
+                    modifyCardInfo();
+                    break;
+                case 4:
+                    deleteCard();
                     break;
 
                 case 0:
@@ -71,11 +91,13 @@ public class Executable {
     }
 
     /**
-     * Clears the console screen after confirming user wants to return to the main
-     * menu.
-     * Uses ANSI escape codes to clear the screen.
+     * Description: Clears the console screen after confirming user wants to return
+     * to the main
+     * menu. Uses ANSI escape codes to clear the screen.
+     * 
+     * Precondition: reader Scanner must be initialized.
      */
-    public static void clearConsole() {
+    public void clearConsole() {
 
         int option = 0;
 
@@ -92,13 +114,19 @@ public class Executable {
     }
 
     /**
-     * Captures card information from the user and creates a new Card object.
+     * Description: Captures card information from the user and registers a new Card
+     * object.
      * Prompts for card name, type, rarity, expansion, ID, and price.
+     * Validates that the card ID is unique before registering.
+     * 
+     * Precondition: reader Scanner must be initialized.
+     * Precondition: control Controller must be initialized.
      */
-    public static void registerCard() {
+    public void registerCard() {
 
         reader.nextLine();
-        System.out.println("Digite el nombre");
+        System.out.println("\nRegistro de Carta:");
+        System.out.println("\nDigite el nombre");
         String name = reader.nextLine();
 
         System.out.println("Digite el tipo");
@@ -110,8 +138,19 @@ public class Executable {
         System.out.println("Digite la expansion");
         String expansion = reader.nextLine();
 
-        System.out.println("Digite el numero consecutivo");
-        int id = reader.nextInt();
+        boolean idFlag;
+        int id;
+        do {
+            System.out.println("Digite el numero de identificacion");
+            id = reader.nextInt();
+
+            idFlag = control.checkCardId(id);
+
+            if (!idFlag) {
+                System.out.println("El número de identificacion ya esta en uso, digite otro");
+            }
+
+        } while (!idFlag);
 
         System.out.println("Digite el precio");
         double price = reader.nextDouble();
@@ -120,37 +159,142 @@ public class Executable {
 
         if (result) {
             System.out.println("Carta registrada exitosamente!");
-        }else{
+        } else {
             System.out.println("Error al registrar carta, el Pokedex esta lleno");
         }
 
     }
 
     /**
-     * Displays the information of the registered card.
-     * Prints all card details to the console.
+     * Description: Displays the information of a registered card selected by the
+     * user.
+     * Prints all card details to the console after retrieving the card index.
+     * 
+     * Precondition: reader Scanner must be initialized.
+     * Precondition: control Controller must be initialized.
+     * 
+     * @return the valid index of the selected card (0-based), or -1 if no cards
+     *         exist
      */
-    public static void showCardInfo() {
+    public int showCardInfo() {
 
+        int index = askIndex();
+
+        if (index >= 0) {
+
+            String cardInfo = control.getCardInformation(index);
+
+            if (cardInfo != null) {
+                System.out.println("\nLa informacion de la carta es: \n\n" + cardInfo);
+
+            } else {
+                System.out.println("Se presento un error, intente nuevamente");
+            }
+        }
+
+        return index;
+
+    }
+
+    /**
+     * Description: Prompts the user to select a card from the registered cards in
+     * the Pokedex.
+     * Displays a list of all registered cards and asks the user to enter the card's
+     * consecutive number.
+     * Validates that the selected index is valid.
+     * 
+     * Precondition: reader Scanner must be initialized.
+     * Precondition: control Controller must be initialized.
+     * 
+     * @return the valid index of the selected card (0-based), or -1 if no cards
+     *         exist
+     */
+    public int askIndex() {
+
+        int index = -1;
         String query = control.getPokedexInformation();
 
-        if(query.equals("")){
-            System.out.println("No hay cartas registradas en el sistema");
-        }else{
-            System.out.println("Cartas registradas: \n");
+        if (query.equals("")) {
+            System.out.println("\nNo hay cartas registradas en el sistema");
+        } else {
+            System.out.println("\nCartas registradas: \n");
             System.out.println(query);
 
-            System.out.println("Digite el consecutivo de la carta a consultar");
-            int index = reader.nextInt();
+            System.out.println("Digite el consecutivo de la carta");
+            index = reader.nextInt();
 
+            index--;
 
+            if (control.checkIndex(index)) {
+                return index;
 
+            } else {
+                System.out.println("\nSe presento un error, verifique el indice proporcionado!");
+            }
 
         }
 
+        return index;
 
+    }
 
-        System.out.println("La informacion de la carta es: \n" + myCard.toString());
+    /**
+     * Description: Allows the user to modify the information of an existing card.
+     * 
+     * Precondition: reader Scanner must be initialized.
+     * Precondition: control Controller must be initialized.
+     */
+    public void modifyCardInfo() {
+
+        int index = showCardInfo();
+
+        if (index >= 0) {
+
+            reader.nextLine();
+            System.out.println("\nModificando la Carta No.: " + (index + 1));
+            System.out.println("\nDigite el nuevo nombre");
+            String name = reader.nextLine();
+
+            System.out.println("Digite el nuevo tipo");
+            String type = reader.nextLine();
+
+            System.out.println("Digite la nueva rareza");
+            String rarity = reader.nextLine();
+
+            System.out.println("Digite la nueva expansion");
+            String expansion = reader.nextLine();
+
+            System.out.println("Digite el precio");
+            double price = reader.nextDouble();
+
+            boolean result = control.modifyCard(index, name, type, rarity, expansion, price);
+
+            if (result) {
+                System.out.println("\nCarta modificada exitosamente!");
+            } else {
+                System.out.println("\nError al modificar la carta!");
+            }
+
+        }
+
+    }
+
+    /**
+     * Description: Allows the user to delete a card from the Pokedex.
+     * 
+     * Precondition: reader Scanner must be initialized.
+     * Precondition: control Controller must be initialized.
+     */
+    public void deleteCard() {
+
+        System.out.println("\nBorrado de Carta:");
+
+        boolean result = control.deleteCard(askIndex());
+
+        if (result) {
+
+            System.out.println("\nOperacion exitosa, la carta fue borrada del sistema!");
+        }
 
     }
 
