@@ -162,7 +162,7 @@ public class Controller {
      */
     public boolean checkIndex(int index) {
 
-        if (index >= 0 && index <= MAX_CARDS) {
+        if (index >= 0 && index < MAX_CARDS) {
             return true;
         }
 
